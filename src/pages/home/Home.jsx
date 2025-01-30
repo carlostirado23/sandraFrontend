@@ -1,7 +1,62 @@
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import axios from "axios";
-import { Search, Plus, Trash2 } from "lucide-react";
+import { Search, Plus } from "lucide-react";
+import Paper from "@mui/material/Paper";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableContainer from "@mui/material/TableContainer";
+import TableHead from "@mui/material/TableHead";
+import TablePagination from "@mui/material/TablePagination";
+import TableRow from "@mui/material/TableRow";
+import IconButton from "@mui/material/IconButton";
+import DeleteIcon from "@mui/icons-material/Delete";
+import Alert from "@mui/material/Alert";
+import Snackbar from "@mui/material/Snackbar";
+import CircularProgress from "@mui/material/CircularProgress";
+import { styled } from "@mui/material/styles";
+
+// Estilo personalizado para el modal
+const ModalOverlay = styled("div")({
+    position: "fixed",
+    inset: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "1rem",
+    zIndex: 1300, // Valor mayor que el z-index del sticky header
+});
+
+const ModalContent = styled("div")({
+    backgroundColor: "white",
+    borderRadius: "0.5rem",
+    width: "100%",
+    maxWidth: "28rem",
+    padding: "1.5rem",
+    position: "relative",
+    zIndex: 1301, // Un poco mayor que el overlay
+});
+
+// Componente estilizado para el loader
+const LoaderOverlay = styled('div')({
+    position: 'fixed',
+    inset: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1400,
+});
+
+const columns = [
+    { id: "nombres", label: "Nombres", minWidth: 170 },
+    { id: "apellidos", label: "Apellidos", minWidth: 170 },
+    { id: "telefono", label: "Teléfono", minWidth: 130 },
+    { id: "fechaEntrega", label: "Fecha Entrega", minWidth: 130 },
+    { id: "acciones", label: "Acciones", minWidth: 100, align: "center" },
+];
 
 const Home = () => {
     const { register, handleSubmit, reset } = useForm();
@@ -10,6 +65,14 @@ const Home = () => {
     const [dialogOpen, setDialogOpen] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [selectedClient, setSelectedClient] = useState(null);
+    const [page, setPage] = useState(0);
+    const [rowsPerPage, setRowsPerPage] = useState(10);
+     const [alert, setAlert] = useState({
+         show: false,
+         message: "",
+         type: "success",
+     });
+     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         axios
@@ -37,6 +100,15 @@ const Home = () => {
         (cliente.nombres + " " + cliente.apellidos).toLowerCase().includes(busqueda.toLowerCase())
     );
 
+    const handleChangePage = (event, newPage) => {
+        setPage(newPage);
+    };
+
+    const handleChangeRowsPerPage = (event) => {
+        setRowsPerPage(+event.target.value);
+        setPage(0);
+    };
+
     const handleOpenDialog = () => {
         setDialogOpen(true);
         reset();
@@ -47,38 +119,91 @@ const Home = () => {
         reset();
     };
 
-   const onSubmit = (data) => {
-       axios
-           .post(`${import.meta.env.VITE_USER_API}/api/clientes`, data) // Agrega la URL base
-           .then((response) => {
-               const nuevoCliente = {
-                   ...response.data,
-                   fechaEntrega: formatearFecha(response.data.fechaEntrega),
-               };
-               setClientes((prev) => [...prev, nuevoCliente]);
-               handleCloseDialog();
-           })
-           .catch((error) => console.error("Error al crear cliente:", error));
-   };
+    const onSubmit = async (data) => {
+        setIsLoading(true);
+        try {
+            const response = await axios.post(`${import.meta.env.VITE_USER_API}/api/clientes`, data);
+            await new Promise((resolve) => setTimeout(resolve, 2000));
+
+            const nuevoCliente = {
+                ...response.data,
+                fechaEntrega: formatearFecha(response.data.fechaEntrega),
+            };
+            setClientes((prev) => [...prev, nuevoCliente]);
+            handleCloseDialog();
+            showAlert("Cliente agregado exitosamente");
+        } catch (error) {
+            console.error("Error al crear cliente:", error);
+            showAlert("Error al crear cliente", "error");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleCloseAlert = (event, reason) => {
+        if (reason === "clickaway") {
+            return;
+        }
+        setAlert((prev) => ({ ...prev, show: false }));
+    };
+
+    const showAlert = (message, type = "success") => {
+        setAlert({
+            show: true,
+            message,
+            type,
+        });
+    };
 
     const handleDelete = (cliente) => {
         setSelectedClient(cliente);
         setDeleteDialogOpen(true);
     };
 
-    const confirmDelete = () => {
-        axios
-            .delete(`${import.meta.env.VITE_USER_API}/api/clientes/${selectedClient.id}`) // Agrega la URL base
-            .then(() => {
-                setClientes((prev) => prev.filter((cliente) => cliente.id !== selectedClient.id));
-                setDeleteDialogOpen(false);
-                setSelectedClient(null);
-            })
-            .catch((error) => console.error("Error al eliminar cliente:", error));
+    const handleCancelDelete = () => {
+        setDeleteDialogOpen(false);
+        setSelectedClient(null);
+        showAlert("Operación cancelada", "info");
     };
 
+    const confirmDelete = async () => {
+        setIsLoading(true);
+        try {
+            await axios.delete(`${import.meta.env.VITE_USER_API}/api/clientes/${selectedClient.id}`);
+            // Simular tiempo de carga
+            await new Promise((resolve) => setTimeout(resolve, 2000));
+
+            setClientes((prev) => prev.filter((cliente) => cliente.id !== selectedClient.id));
+            setDeleteDialogOpen(false);
+            setSelectedClient(null);
+            showAlert("Cliente eliminado exitosamente");
+        } catch (error) {
+            console.error("Error al eliminar cliente:", error);
+            showAlert("Error al eliminar cliente", "error");
+        } finally {
+            setIsLoading(false);
+        }
+    };
     return (
-        <div className="p-6 max-w-4xl mx-auto">
+        <div className="p-6 max-w-6xl mx-auto">
+            {/* Snackbar para mostrar alertas */}
+            <Snackbar
+                open={alert.show}
+                autoHideDuration={4000}
+                onClose={handleCloseAlert}
+                anchorOrigin={{ vertical: "bottom", horizontal: "right" }}>
+                <Alert onClose={handleCloseAlert} severity={alert.type} sx={{ width: "100%" }}>
+                    {alert.message}
+                </Alert>
+            </Snackbar>
+
+            {/* Loader overlay */}
+            {isLoading && (
+                <LoaderOverlay>
+                    <CircularProgress size={60} />
+                </LoaderOverlay>
+            )}
+
             <div className="bg-white rounded-lg shadow-lg p-6">
                 <div className="mb-6 flex justify-between items-center">
                     <h1 className="text-2xl font-bold">Registro de Clientes</h1>
@@ -100,29 +225,59 @@ const Home = () => {
                     />
                 </div>
 
-                <div className="rounded-md border">
-                    {clientesFiltrados.map((cliente) => (
-                        <div key={cliente.id} className="grid grid-cols-5 gap-4 px-4 py-3 hover:bg-gray-50">
-                            <div className="text-center">{cliente.nombres}</div>
-                            <div className="text-center">{cliente.apellidos}</div>
-                            <div className="text-center">{cliente.telefono}</div>
-                            <div className="text-center">{cliente.fechaEntrega}</div>
-                            <div className="text-center">
-                                <button
-                                    onClick={() => handleDelete(cliente)}
-                                    className="text-red-600 hover:text-red-800">
-                                    <Trash2 className="h-4 w-4 mx-auto" />
-                                </button>
-                            </div>
-                        </div>
-                    ))}
-                </div>
+                <Paper sx={{ width: "100%", overflow: "hidden" }}>
+                    <TableContainer sx={{ maxHeight: 440 }}>
+                        <Table stickyHeader aria-label="sticky table">
+                            <TableHead>
+                                <TableRow>
+                                    {columns.map((column) => (
+                                        <TableCell
+                                            key={column.id}
+                                            align={column.align}
+                                            style={{ minWidth: column.minWidth }}>
+                                            {column.label}
+                                        </TableCell>
+                                    ))}
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {clientesFiltrados
+                                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                                    .map((cliente) => (
+                                        <TableRow hover role="checkbox" tabIndex={-1} key={cliente.id}>
+                                            <TableCell>{cliente.nombres}</TableCell>
+                                            <TableCell>{cliente.apellidos}</TableCell>
+                                            <TableCell>{cliente.telefono}</TableCell>
+                                            <TableCell>{cliente.fechaEntrega}</TableCell>
+                                            <TableCell align="center">
+                                                <IconButton
+                                                    onClick={() => handleDelete(cliente)}
+                                                    color="error"
+                                                    size="small">
+                                                    <DeleteIcon />
+                                                </IconButton>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                    <TablePagination
+                        rowsPerPageOptions={[10, 25, 100]}
+                        component="div"
+                        count={clientesFiltrados.length}
+                        rowsPerPage={rowsPerPage}
+                        page={page}
+                        onPageChange={handleChangePage}
+                        onRowsPerPageChange={handleChangeRowsPerPage}
+                    />
+                </Paper>
             </div>
 
             {/* Modal para nuevo cliente */}
             {dialogOpen && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-lg max-w-md w-full p-6">
+                <ModalOverlay>
+                    <ModalContent>
                         <h2 className="text-xl font-bold mb-4">Nuevo Cliente</h2>
                         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                             <input
@@ -145,34 +300,47 @@ const Home = () => {
                                 <button
                                     type="button"
                                     onClick={handleCloseDialog}
-                                    className="border rounded-md px-4 py-2">
+                                    className="border rounded-md px-4 py-2"
+                                    disabled={isLoading}>
                                     Cancelar
                                 </button>
-                                <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded-md">
-                                    Crear
+                                <button
+                                    type="submit"
+                                    className="bg-blue-600 text-white px-4 py-2 rounded-md"
+                                    disabled={isLoading}>
+                                    {isLoading ? "Creando..." : "Crear"}
                                 </button>
                             </div>
                         </form>
-                    </div>
-                </div>
+                    </ModalContent>
+                </ModalOverlay>
             )}
 
             {/* Modal de confirmación de eliminación */}
             {deleteDialogOpen && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-lg max-w-md w-full p-6">
+                <ModalOverlay>
+                    <ModalContent>
                         <h2 className="text-xl font-bold mb-4">¿Está seguro?</h2>
-                        <p className="text-gray-600 mb-6">Esta acción no se puede deshacer.</p>
+                        <p className="text-gray-600 mb-6">
+                            ¿Está seguro que desea eliminar al cliente {selectedClient?.nombres}{" "}
+                            {selectedClient?.apellidos}?
+                        </p>
                         <div className="flex justify-end gap-2">
-                            <button onClick={() => setDeleteDialogOpen(false)} className="border rounded-md px-4 py-2">
+                            <button
+                                onClick={handleCancelDelete}
+                                className="border rounded-md px-4 py-2"
+                                disabled={isLoading}>
                                 Cancelar
                             </button>
-                            <button onClick={confirmDelete} className="bg-red-600 text-white px-4 py-2 rounded-md">
-                                Eliminar
+                            <button
+                                onClick={confirmDelete}
+                                className="bg-red-600 text-white px-4 py-2 rounded-md"
+                                disabled={isLoading}>
+                                {isLoading ? "Eliminando..." : "Eliminar"}
                             </button>
                         </div>
-                    </div>
-                </div>
+                    </ModalContent>
+                </ModalOverlay>
             )}
         </div>
     );
