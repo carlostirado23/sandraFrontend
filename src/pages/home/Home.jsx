@@ -16,6 +16,7 @@ import Alert from "@mui/material/Alert";
 import Snackbar from "@mui/material/Snackbar";
 import CircularProgress from "@mui/material/CircularProgress";
 import { styled } from "@mui/material/styles";
+import Button from "@mui/material/Button";
 
 // Estilo personalizado para el modal
 const ModalOverlay = styled("div")({
@@ -123,7 +124,6 @@ const Home = () => {
         setIsLoading(true);
         try {
             const response = await axios.post(`${import.meta.env.VITE_USER_API}/api/clientes`, data);
-            await new Promise((resolve) => setTimeout(resolve, 2000));
 
             const nuevoCliente = {
                 ...response.data,
@@ -170,8 +170,6 @@ const Home = () => {
         setIsLoading(true);
         try {
             await axios.delete(`${import.meta.env.VITE_USER_API}/api/clientes/${selectedClient.id}`);
-            // Simular tiempo de carga
-            await new Promise((resolve) => setTimeout(resolve, 2000));
 
             setClientes((prev) => prev.filter((cliente) => cliente.id !== selectedClient.id));
             setDeleteDialogOpen(false);
@@ -185,7 +183,7 @@ const Home = () => {
         }
     };
     return (
-        <div className="p-6 max-w-6xl mx-auto">
+        <div className="max-w-6xl p-6 mx-auto">
             {/* Snackbar para mostrar alertas */}
             <Snackbar
                 open={alert.show}
@@ -204,22 +202,20 @@ const Home = () => {
                 </LoaderOverlay>
             )}
 
-            <div className="bg-white rounded-lg shadow-lg p-6">
-                <div className="mb-6 flex justify-between items-center">
+            <div className="p-6 bg-white rounded-lg shadow-lg">
+                <div className="flex items-center justify-between mb-6">
                     <h1 className="text-2xl font-bold">Registro de Clientes</h1>
-                    <button
-                        onClick={handleOpenDialog}
-                        className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center">
-                        <Plus className="h-4 w-4 mr-2" /> Nuevo Cliente
-                    </button>
+                    <Button variant="contained" onClick={handleOpenDialog}>
+                        <Plus className="w-4 h-4 mr-2" /> Nuevo Cliente
+                    </Button>
                 </div>
 
-                <div className="mb-6 relative">
-                    <Search className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
+                <div className="relative mb-6">
+                    <Search className="absolute w-4 h-4 text-gray-500 left-3 top-3" />
                     <input
                         type="text"
                         placeholder="Buscar cliente..."
-                        className="w-full pl-10 pr-4 py-2 border rounded-md"
+                        className="w-full py-2 pl-10 pr-4 border rounded-md"
                         value={busqueda}
                         onChange={(e) => setBusqueda(e.target.value)}
                     />
@@ -234,7 +230,7 @@ const Home = () => {
                                         <TableCell
                                             key={column.id}
                                             align={column.align}
-                                            style={{ minWidth: column.minWidth }}>
+                                            style={{ minWidth: column.minWidth, fontWeight: "bold" }}>
                                             {column.label}
                                         </TableCell>
                                     ))}
@@ -278,7 +274,7 @@ const Home = () => {
             {dialogOpen && (
                 <ModalOverlay>
                     <ModalContent>
-                        <h2 className="text-xl font-bold mb-4">Nuevo Cliente</h2>
+                        <h2 className="mb-4 text-xl font-bold">Nuevo Cliente</h2>
                         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                             <input
                                 {...register("nombres")}
@@ -300,13 +296,13 @@ const Home = () => {
                                 <button
                                     type="button"
                                     onClick={handleCloseDialog}
-                                    className="border rounded-md px-4 py-2"
+                                    className="px-4 py-2 border rounded-md"
                                     disabled={isLoading}>
                                     Cancelar
                                 </button>
                                 <button
                                     type="submit"
-                                    className="bg-blue-600 text-white px-4 py-2 rounded-md"
+                                    className="px-4 py-2 text-white bg-blue-600 rounded-md"
                                     disabled={isLoading}>
                                     {isLoading ? "Creando..." : "Crear"}
                                 </button>
@@ -320,21 +316,21 @@ const Home = () => {
             {deleteDialogOpen && (
                 <ModalOverlay>
                     <ModalContent>
-                        <h2 className="text-xl font-bold mb-4">¿Está seguro?</h2>
-                        <p className="text-gray-600 mb-6">
+                        <h2 className="mb-4 text-xl font-bold">¿Está seguro?</h2>
+                        <p className="mb-6 text-gray-600">
                             ¿Está seguro que desea eliminar al cliente {selectedClient?.nombres}{" "}
                             {selectedClient?.apellidos}?
                         </p>
                         <div className="flex justify-end gap-2">
                             <button
                                 onClick={handleCancelDelete}
-                                className="border rounded-md px-4 py-2"
+                                className="px-4 py-2 border rounded-md"
                                 disabled={isLoading}>
                                 Cancelar
                             </button>
                             <button
                                 onClick={confirmDelete}
-                                className="bg-red-600 text-white px-4 py-2 rounded-md"
+                                className="px-4 py-2 text-white bg-red-600 rounded-md"
                                 disabled={isLoading}>
                                 {isLoading ? "Eliminando..." : "Eliminar"}
                             </button>
