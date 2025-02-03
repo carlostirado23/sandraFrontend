@@ -21,7 +21,7 @@ const Medidas = ({ control }) => {
         <>
             {/* Measurements Section */}
             <Grid item xs={12}>
-                <Typography variant="h6" color="primary" gutterBottom>
+                <Typography variant="h6" color="main" gutterBottom>
                     Medidas
                 </Typography>
             </Grid>

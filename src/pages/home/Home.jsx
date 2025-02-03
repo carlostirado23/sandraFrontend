@@ -154,7 +154,7 @@ const Home = () => {
                 <div className="flex items-center justify-between mb-6">
                     <h1 className="text-2xl font-bold">Registro de Clientes</h1>
                     <Button variant="contained" onClick={handleNuevoCliente}>
-                        <Plus className="w-4 h-4 mr-2" /> Nuevo Cliente
+                        <Plus className="w-4 h-4 mr-2 max-[768px]:w-9" /> Cliente
                     </Button>
                 </div>
 

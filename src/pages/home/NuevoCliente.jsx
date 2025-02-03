@@ -1,8 +1,20 @@
-import { useState } from "react";
-import { TextField, Button, Grid, Typography, Container, Paper, Box, createTheme, ThemeProvider } from "@mui/material";
+import { useState, useEffect } from "react";
+import {
+    TextField,
+    Button,
+    Grid,
+    Typography,
+    Container,
+    Paper,
+    Box,
+    createTheme,
+    ThemeProvider,
+    Backdrop,
+    CircularProgress,
+} from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { useForm, Controller } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom"; // Se agregó useLocation
 import axios from "axios";
 import Compressor from "compressorjs";
 import { Scissors, Camera } from "lucide-react";
@@ -12,10 +24,10 @@ import Medidas from "../../components/Medidas";
 const theme = createTheme({
     palette: {
         primary: {
-            main: "#1976d2", // Soft purple
+            main: "#1976d2",
         },
         secondary: {
-            main: "#1976d2", // Soft lavender
+            main: "#000000",
         },
     },
     typography: {
@@ -50,11 +62,11 @@ const ImageUploadButton = styled("label")({
     padding: "10px 15px",
     borderRadius: 12,
     backgroundColor: "#1976d2",
-    color: "#000000",
+    color: "#ffffff",
     cursor: "pointer",
     transition: "background-color 0.3s ease",
     "&:hover": {
-        backgroundColor: "#0f009b",
+        backgroundColor: "#12569b",
         color: "white",
     },
 });
@@ -62,8 +74,48 @@ const ImageUploadButton = styled("label")({
 const NuevoCliente = () => {
     const { control, handleSubmit, setValue } = useForm();
     const navigate = useNavigate();
+    const location = useLocation(); // Obtenemos la ubicación
     const [isLoading, setIsLoading] = useState(false);
     const [previewImage, setPreviewImage] = useState(null);
+    const [isEditMode, setIsEditMode] = useState(false);
+
+
+    // Si se pasó un cliente en el state, lo obtenemos para editar
+    const cliente = location.state?.cliente;
+
+    // Si existe el cliente, precargamos los datos en el formulario
+   useEffect(() => {
+       if (cliente) {
+           setIsEditMode(true); // Estás editando
+           setValue("nombres", cliente.nombres);
+           setValue("apellidos", cliente.apellidos);
+           setValue("telefono", cliente.telefono);
+           setValue("espalda", cliente.espalda);
+           setValue("tDelantero", cliente.tDelantero);
+           setValue("tTrasero", cliente.tTrasero);
+           setValue("busto", cliente.busto);
+           setValue("altBusto", cliente.altBusto);
+           setValue("sepBusto", cliente.sepBusto);
+           setValue("cintura", cliente.cintura);
+           setValue("siza", cliente.siza);
+           setValue("larManga", cliente.larManga);
+           setValue("contManga", cliente.contManga);
+           setValue("escote", cliente.escote);
+           setValue("larTotal", cliente.larTotal);
+           setValue("contCintura", cliente.contCintura);
+           setValue("cadera", cliente.cadera);
+           setValue("altCadera", cliente.altCadera);
+           setValue("tipoTela", cliente.tipoTela);
+           setValue("fechaPrueba", cliente.fechaPrueba);
+           setValue("fechaEntrega", cliente.fechaEntrega);
+           setValue("precio", cliente.precio);
+           setValue("adelanto", cliente.adelanto);
+           setValue("imagen", cliente.imagen);
+       } else {
+           setIsEditMode(false); // Estás agregando un nuevo cliente
+       }
+   }, [cliente, setValue]);
+
 
     const comprimirImagen = (file) => {
         return new Promise((resolve, reject) => {
@@ -101,12 +153,10 @@ const NuevoCliente = () => {
     const onSubmit = async (data) => {
         setIsLoading(true);
         try {
-            console.log("Datos del formulario:", data); // Verifica que las medidas estén aquí
             const clientData = {
                 nombres: data.nombres,
                 apellidos: data.apellidos,
                 telefono: data.telefono,
-                // medidas
                 espalda: data.espalda,
                 tDelantero: data.tDelantero,
                 tTrasero: data.tTrasero,
@@ -122,7 +172,6 @@ const NuevoCliente = () => {
                 contCintura: data.contCintura,
                 cadera: data.cadera,
                 altCadera: data.altCadera,
-
                 tipoTela: data.tipoTela,
                 fechaPrueba: data.fechaPrueba,
                 fechaEntrega: data.fechaEntrega,
@@ -130,14 +179,18 @@ const NuevoCliente = () => {
                 adelanto: data.adelanto,
                 imagen: data.imagen || "",
             };
-            console.log("Datos a enviar:", clientData); // Verifica los datos que se van a enviar
 
-            const response = await axios.post(`${import.meta.env.VITE_USER_API}/api/clientes`, clientData);
-            console.log("Respuesta del servidor:", response.data);
-
-            navigate("/", { state: { message: "Cliente creado exitosamente" } });
+            if (cliente) {
+                // Si existe el cliente, actualizamos (PUT)
+                await axios.put(`${import.meta.env.VITE_USER_API}/api/clientes/${cliente.id}`, clientData);
+                navigate("/", { state: { message: "Cliente actualizado exitosamente" } });
+            } else {
+                // Si no existe, creamos el cliente (POST)
+                await axios.post(`${import.meta.env.VITE_USER_API}/api/clientes`, clientData);
+                navigate("/", { state: { message: "Cliente creado exitosamente" } });
+            }
         } catch (error) {
-            console.error("Error al crear cliente:", error);
+            console.error("Error al guardar cliente:", error);
         } finally {
             setIsLoading(false);
         }
@@ -148,9 +201,9 @@ const NuevoCliente = () => {
             <Container maxWidth="md">
                 <StyledPaper elevation={0}>
                     <Box display="flex" alignItems="center" mb={3}>
-                        <Scissors size={32} color="#1976d2" style={{ marginRight: 10 }} />
-                        <Typography variant="h4" color="primary">
-                            Nuevo Cliente
+                        <Scissors size={32} color="#000000" style={{ marginRight: 10 }} />
+                        <Typography variant="h4" color="main">
+                            {cliente ? "Editar Cliente" : "Nuevo Cliente"}
                         </Typography>
                     </Box>
 
@@ -269,6 +322,7 @@ const NuevoCliente = () => {
                                             InputProps={{
                                                 startAdornment: <span style={{ color: "#000000" }}>$</span>,
                                             }}
+                                            required
                                         />
                                     )}
                                 />
@@ -295,7 +349,7 @@ const NuevoCliente = () => {
 
                             {/* Image Upload */}
                             <Grid item xs={12}>
-                                <Box display="flex" alignItems="center" gap={2}>
+                                <Box display="grid" alignItems="center" gap={2}>
                                     <ImageUploadButton>
                                         <input
                                             type="file"
@@ -307,15 +361,17 @@ const NuevoCliente = () => {
                                         Subir Imagen
                                     </ImageUploadButton>
                                     {previewImage && (
-                                        <img
-                                            src={previewImage}
-                                            alt="Preview"
-                                            style={{
-                                                maxWidth: 100,
-                                                maxHeight: 100,
-                                                borderRadius: 8,
-                                            }}
-                                        />
+                                        <div className="flex justify-center w-full">
+                                            <img
+                                                src={previewImage}
+                                                alt="Preview"
+                                                style={{
+                                                    maxWidth: 300,
+                                                    maxHeight: 300,
+                                                    borderRadius: 8,
+                                                }}
+                                            />
+                                        </div>
                                     )}
                                 </Box>
                             </Grid>
@@ -323,15 +379,17 @@ const NuevoCliente = () => {
                             {/* Action Buttons */}
                             <Grid item xs={12}>
                                 <Box display="flex" justifyContent="flex-end" gap={2}>
-                                    <Button
-                                        variant="outlined"
-                                        color="primary"
-                                        onClick={() => navigate("/")}
-                                        disabled={isLoading}>
+                                    <Button variant="outlined" onClick={() => navigate("/")} disabled={isLoading}>
                                         Cancelar
                                     </Button>
-                                    <Button type="submit" variant="contained" color="primary" disabled={isLoading}>
-                                        {isLoading ? "Guardando..." : "Guardar"}
+                                    <Button type="submit" variant="contained" disabled={isLoading}>
+                                        {
+                                            isLoading
+                                                ? "Cargando..."
+                                                : isEditMode
+                                                ? "Actualizar" // Si es modo de edición, mostrar "Actualizar"
+                                                : "Agregar" // Si es agregar, mostrar "Agregar"
+                                        }
                                     </Button>
                                 </Box>
                             </Grid>
@@ -339,6 +397,11 @@ const NuevoCliente = () => {
                     </form>
                 </StyledPaper>
             </Container>
+
+            {/* Loader de pantalla completa */}
+            <Backdrop open={isLoading} sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }}>
+                <CircularProgress color="inherit" />
+            </Backdrop>
         </ThemeProvider>
     );
 };
