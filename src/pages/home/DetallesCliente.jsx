@@ -99,49 +99,49 @@ const DetallesCliente = () => {
                                     Medidas del Cliente
                                 </Typography>
                                 <Typography>
-                                    <strong>Espalda:</strong> {clienteData.espalda}
+                                    <strong>Espalda:</strong> {clienteData.espalda} cm
                                 </Typography>
                                 <Typography>
-                                    <strong>T. Delantero:</strong> {clienteData.tDelantero}
+                                    <strong>T. Delantero:</strong> {clienteData.tDelantero} cm
                                 </Typography>
                                 <Typography>
-                                    <strong>T. Trasero:</strong> {clienteData.tTrasero}
+                                    <strong>T. Trasero:</strong> {clienteData.tTrasero} cm
                                 </Typography>
                                 <Typography>
-                                    <strong>Busto:</strong> {clienteData.busto}
+                                    <strong>Busto:</strong> {clienteData.busto} cm
                                 </Typography>
                                 <Typography>
-                                    <strong>Altura busto:</strong> {clienteData.altBusto}
+                                    <strong>Altura busto:</strong> {clienteData.altBusto} cm
                                 </Typography>
                                 <Typography>
-                                    <strong>Separación de busto:</strong> {clienteData.sepBusto}
+                                    <strong>Separación de busto:</strong> {clienteData.sepBusto} cm
                                 </Typography>
                                 <Typography>
-                                    <strong>Cintura:</strong> {clienteData.cintura}
+                                    <strong>Cintura:</strong> {clienteData.cintura} cm
                                 </Typography>
                                 <Typography>
-                                    <strong>Siza:</strong> {clienteData.siza}
+                                    <strong>Siza:</strong> {clienteData.siza} cm
                                 </Typography>
                                 <Typography>
-                                    <strong>Largo manga:</strong> {clienteData.larManga}
+                                    <strong>Largo manga:</strong> {clienteData.larManga} cm
                                 </Typography>
                                 <Typography>
-                                    <strong>Contorno manga:</strong> {clienteData.contManga}
+                                    <strong>Contorno manga:</strong> {clienteData.contManga} cm
                                 </Typography>
                                 <Typography>
-                                    <strong>Escote:</strong> {clienteData.escote}
+                                    <strong>Escote:</strong> {clienteData.escote} cm
                                 </Typography>
                                 <Typography>
-                                    <strong>Contorno cintura:</strong> {clienteData.contCintura}
+                                    <strong>Contorno cintura:</strong> {clienteData.contCintura} cm
                                 </Typography>
                                 <Typography>
-                                    <strong>Cadera:</strong> {clienteData.cadera}
+                                    <strong>Cadera:</strong> {clienteData.cadera} cm
                                 </Typography>
                                 <Typography>
-                                    <strong>Altura cadera:</strong> {clienteData.altCadera}
+                                    <strong>Altura cadera:</strong> {clienteData.altCadera} cm
                                 </Typography>
                                 <Typography>
-                                    <strong>Largo total:</strong> {clienteData.larTotal}
+                                    <strong>Largo total:</strong> {clienteData.larTotal} cm
                                 </Typography>
                             </Paper>
                         </Grid>
@@ -162,7 +162,7 @@ const DetallesCliente = () => {
 
                     <Grid item xs={12}>
                         <Box display="flex" justifyContent="flex-end" mt={2}>
-                            <Button variant="outlined" onClick={() => navigate("/")} >
+                            <Button variant="outlined" onClick={() => navigate("/")}>
                                 Regresar
                             </Button>
                         </Box>
