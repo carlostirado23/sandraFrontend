@@ -39,7 +39,7 @@ const theme = createTheme({
 const StyledPaper = styled(Paper)(({ theme }) => ({
     borderRadius: 16,
     padding: theme.spacing(4),
-    background: "linear-gradient(145deg, #f0f0f0, #ffffff)",
+    background: "linear-gradient(145deg, #ffffff, #ffffff)",
     boxShadow: "0 10px 30px rgba(142, 69, 133, 0.1)",
 }));
 

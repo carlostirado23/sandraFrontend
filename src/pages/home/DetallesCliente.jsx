@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, Typography, Grid, Box, Paper, Button } f
 const DetallesCliente = () => {
     const location = useLocation();
     const navigate = useNavigate();
-
+    
     // Estado para almacenar los datos del cliente
     const [clienteData, setClienteData] = useState(() => {
         // Intenta obtener datos de location.state o de localStorage
