@@ -10,11 +10,11 @@ import IconButton from "@mui/material/IconButton";
 import DeleteIcon from "@mui/icons-material/Delete";
 
 const columns = [
+    { id: "imagen", label: "Imagen", minWidth: 130 },
     { id: "nombres", label: "Nombre", minWidth: 170 },
     { id: "apellidos", label: "Apellido", minWidth: 170 },
     { id: "telefono", label: "Teléfono", minWidth: 130 },
     { id: "fechaEntrega", label: "Fecha Entrega", minWidth: 170 },
-    { id: "imagen", label: "Imagen", minWidth: 130 },
     { id: "acciones", label: "Acciones", minWidth: 100, align: "center" },
 ];
 
@@ -47,10 +47,6 @@ const ClientTable = ({
                             .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                             .map((cliente) => (
                                 <TableRow hover role="checkbox" tabIndex={-1} key={cliente.id}>
-                                    <TableCell>{cliente.nombres}</TableCell>
-                                    <TableCell>{cliente.apellidos}</TableCell>
-                                    <TableCell>{cliente.telefono}</TableCell>
-                                    <TableCell>{cliente.fechaEntrega}</TableCell>
                                     <TableCell>
                                         {cliente.imagen ? (
                                             <img
@@ -62,6 +58,10 @@ const ClientTable = ({
                                             "Sin imagen"
                                         )}
                                     </TableCell>
+                                    <TableCell>{cliente.nombres}</TableCell>
+                                    <TableCell>{cliente.apellidos}</TableCell>
+                                    <TableCell>{cliente.telefono}</TableCell>
+                                    <TableCell>{cliente.fechaEntrega}</TableCell>
                                     <TableCell align="center">
                                         <IconButton onClick={() => handleDelete(cliente)} color="error" size="small">
                                             <DeleteIcon />

@@ -1,26 +1,23 @@
 import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
 import axios from "axios";
 import { Plus } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import Alert from "@mui/material/Alert";
 import Snackbar from "@mui/material/Snackbar";
 import CircularProgress from "@mui/material/CircularProgress";
 import { styled } from "@mui/material/styles";
 import Button from "@mui/material/Button";
-import ClientForm from "../../components/ClientForm";
 import SearchBar from "../../components/SearchBar";
-import CustomModal from "../../components/CustomModal";
 import ClientTable from "../../components/ClientTable";
 
-
 // Componente estilizado para el loader
-const LoaderOverlay = styled('div')({
-    position: 'fixed',
+const LoaderOverlay = styled("div")({
+    position: "fixed",
     inset: 0,
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "rgba(255, 255, 255, 0.8)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
     zIndex: 1400,
 });
 
@@ -34,10 +31,9 @@ const columns = [
 ];
 
 const Home = () => {
-    const { register, handleSubmit, reset } = useForm();
+    const navigate = useNavigate();
     const [clientes, setClientes] = useState([]);
     const [busqueda, setBusqueda] = useState("");
-    const [dialogOpen, setDialogOpen] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [selectedClient, setSelectedClient] = useState(null);
     const [page, setPage] = useState(0);
@@ -50,17 +46,22 @@ const Home = () => {
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
-        axios
-            .get(`${import.meta.env.VITE_USER_API}/api/clientes`)
-            .then((response) => {
-                const clientesFormateados = response.data.map((cliente) => ({
-                    ...cliente,
-                    fechaEntrega: formatearFecha(cliente.fechaEntrega),
-                }));
-                setClientes(clientesFormateados);
-            })
-            .catch((error) => console.error("Error al obtener clientes:", error));
+        fetchClientes();
     }, []);
+
+    const fetchClientes = async () => {
+        try {
+            const response = await axios.get(`${import.meta.env.VITE_USER_API}/api/clientes`);
+            const clientesFormateados = response.data.map((cliente) => ({
+                ...cliente,
+                fechaEntrega: formatearFecha(cliente.fechaEntrega),
+            }));
+            setClientes(clientesFormateados);
+        } catch (error) {
+            console.error("Error al obtener clientes:", error);
+            showAlert("Error al cargar clientes", "error");
+        }
+    };
 
     const formatearFecha = (timestamp) => {
         if (!timestamp) return "";
@@ -83,53 +84,6 @@ const Home = () => {
         setRowsPerPage(+event.target.value);
         setPage(0);
     };
-
-    const handleOpenDialog = () => {
-        setDialogOpen(true);
-        reset();
-    };
-
-    const handleCloseDialog = () => {
-        setDialogOpen(false); // Cierra el modal
-        reset(); // Limpia el formulario
-    };
-
-    const onSubmit = async (data) => {
-        setIsLoading(true);
-        try {
-            // Verificar si hay campos undefined o vacíos
-            const clienteData = {
-                nombres: data.nombres || "", // Default a vacío si es undefined
-                apellidos: data.apellidos || "",
-                telefono: data.telefono || "",
-                fechaEntrega: data.fechaEntrega || "",
-                imagen: data.imagen || "", // Verificar si la imagen es válida
-            };
-
-            console.log("Datos enviados:", clienteData); // Verifica los datos antes de enviar
-
-            const response = await axios.post(`${import.meta.env.VITE_USER_API}/api/clientes`, clienteData);
-
-            const nuevoCliente = {
-                ...response.data,
-                fechaEntrega: formatearFecha(response.data.fechaEntrega),
-            };
-            setClientes((prev) => [...prev, nuevoCliente]);
-            handleCloseDialog();
-            showAlert("Cliente agregado exitosamente", "success");
-        } catch (error) {
-            console.error("Error al crear cliente:", error);
-            if (error.response) {
-                console.error("Respuesta del servidor:", error.response.data);
-                showAlert(`Error: ${error.response.data.message || "Datos inválidos"}`, "error");
-            } else {
-                showAlert("Error al conectar con el servidor", "error");
-            }
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
 
     const handleCloseAlert = (event, reason) => {
         if (reason === "clickaway") {
@@ -174,6 +128,10 @@ const Home = () => {
         }
     };
 
+    const handleNuevoCliente = () => {
+        navigate("/NuevoCliente");
+    };
+
     return (
         <div className="max-w-6xl p-6 mx-auto">
             <Snackbar
@@ -195,7 +153,7 @@ const Home = () => {
             <div className="p-6 bg-white rounded-lg shadow-lg">
                 <div className="flex items-center justify-between mb-6">
                     <h1 className="text-2xl font-bold">Registro de Clientes</h1>
-                    <Button variant="contained" onClick={handleOpenDialog}>
+                    <Button variant="contained" onClick={handleNuevoCliente}>
                         <Plus className="w-4 h-4 mr-2" /> Nuevo Cliente
                     </Button>
                 </div>
@@ -203,7 +161,7 @@ const Home = () => {
                 <SearchBar busqueda={busqueda} setBusqueda={setBusqueda} />
 
                 <ClientTable
-                    columns={columns} 
+                    columns={columns}
                     clientesFiltrados={clientesFiltrados}
                     page={page}
                     rowsPerPage={rowsPerPage}
@@ -213,33 +171,30 @@ const Home = () => {
                 />
             </div>
 
-            <CustomModal isOpen={dialogOpen} onClose={handleCloseDialog} title="Nuevo Cliente">
-                <ClientForm
-                    onSubmit={onSubmit}
-                    register={register}
-                    handleSubmit={handleSubmit}
-                    isLoading={isLoading}
-                    onCancel={handleCloseDialog} 
-                    handleCloseDialog={handleCloseDialog} 
-                />
-            </CustomModal>
-
-            <CustomModal isOpen={deleteDialogOpen} onClose={handleCancelDelete} title="¿Está seguro?">
-                <p className="mb-6 text-gray-600">
-                    ¿Está seguro que desea eliminar al cliente {selectedClient?.nombres} {selectedClient?.apellidos}?
-                </p>
-                <div className="flex justify-end gap-2">
-                    <button onClick={handleCancelDelete} className="px-4 py-2 border rounded-md" disabled={isLoading}>
-                        Cancelar
-                    </button>
-                    <button
-                        onClick={confirmDelete}
-                        className="px-4 py-2 text-white bg-red-600 rounded-md"
-                        disabled={isLoading}>
-                        {isLoading ? "Eliminando..." : "Eliminar"}
-                    </button>
+            {deleteDialogOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                    <div className="p-6 bg-white rounded-lg shadow-xl">
+                        <p className="mb-6 text-gray-600">
+                            ¿Está seguro que desea eliminar al cliente {selectedClient?.nombres}{" "}
+                            {selectedClient?.apellidos}?
+                        </p>
+                        <div className="flex justify-end gap-2">
+                            <button
+                                onClick={handleCancelDelete}
+                                className="px-4 py-2 border rounded-md"
+                                disabled={isLoading}>
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={confirmDelete}
+                                className="px-4 py-2 text-white bg-red-600 rounded-md"
+                                disabled={isLoading}>
+                                {isLoading ? "Eliminando..." : "Eliminar"}
+                            </button>
+                        </div>
+                    </div>
                 </div>
-            </CustomModal>
+            )}
         </div>
     );
 };
