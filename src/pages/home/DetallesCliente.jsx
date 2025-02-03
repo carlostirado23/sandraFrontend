@@ -1,6 +1,6 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, Typography, Grid, Box, Paper } from "@mui/material";
+import { Card, CardContent, CardHeader, Typography, Grid, Box, Paper, Button } from "@mui/material";
 
 const DetallesCliente = () => {
     const location = useLocation();
@@ -77,16 +77,14 @@ const DetallesCliente = () => {
                                     <strong>Fecha de entrega:</strong> {clienteData.fechaEntrega}
                                 </Typography>
                                 <Typography>
-                                    <strong>Precio total:</strong>{" $"}
-                                    {new Intl.NumberFormat("es-ES").format(
-                                        clienteData.precio
-                                    )}
+                                    <strong>Precio total:</strong>
+                                    {" $"}
+                                    {new Intl.NumberFormat("es-ES").format(clienteData.precio)}
                                 </Typography>
                                 <Typography>
-                                    <strong>Adelanto:</strong>{" $"}
-                                    {new Intl.NumberFormat("es-ES").format(
-                                        clienteData.adelanto
-                                    )}
+                                    <strong>Adelanto:</strong>
+                                    {" $"}
+                                    {new Intl.NumberFormat("es-ES").format(clienteData.adelanto)}
                                 </Typography>
                             </Paper>
                         </Grid>
@@ -160,6 +158,14 @@ const DetallesCliente = () => {
                                 </Card>
                             </Box>
                         </Grid>
+                    </Grid>
+
+                    <Grid item xs={12}>
+                        <Box display="flex" justifyContent="flex-end" mt={2}>
+                            <Button variant="outlined" onClick={() => navigate("/")} >
+                                Regresar
+                            </Button>
+                        </Box>
                     </Grid>
                 </CardContent>
             </Card>
